@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from scipy.signal import savgol_filter
@@ -10,8 +11,45 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
+# Check if any of the strings in list_to_search are substrings of the target string
+def substring_in_list(target_string, list_to_search):
+    return any(item in target_string for item in list_to_search)
+
+
+def load_dataset(dataset_folder, dataset_name,
+                 selected_instructions, selected_velocities,
+                 train_subjects, test_subjects):
+    
+    df = pd.read_csv(os.path.join(dataset_folder, dataset_name))
+    df_train = df[
+        (df['Instruction_id'].isin(selected_instructions)) &
+        (df['Velocity'].isin(selected_velocities)) &
+        (df['Subject'].isin(train_subjects))
+    ]
+    df_test = df[
+        (df['Instruction_id'].isin(selected_instructions)) &
+        (df['Velocity'].isin(selected_velocities)) &
+        (df['Subject'].isin(test_subjects))
+    ]
+
+    print(f"{dataset_name}: TRAIN dataset shape: {df_train.shape}")
+    print(f"{dataset_name}: TEST dataset shape: {df_test.shape}")
+
+    df_train = df_train.dropna()
+    df_test = df_test.dropna()
+
+    print(f"{dataset_name}: TRAIN dataset shape after dropping NaNs: {df_train.shape}")
+    print(f"{dataset_name}: TEST dataset shape after dropping NaNs: {df_test.shape}")
+
+    return df_train, df_test
+
+
 # Function to compute KL divergence between two distributions
 def compute_kl_divergence(train_data, test_data):
+    if np.isnan(train_data).any() or np.isnan(test_data).any():
+        train_data = train_data[~np.isnan(train_data)]
+        test_data = test_data[~np.isnan(test_data)]
+
     kde_train = gaussian_kde(train_data)
     kde_test = gaussian_kde(test_data)
     
@@ -200,8 +238,8 @@ def build_configuration_dataset(input_df, sub, instr, task, vel,
     if not differentiate_cartesian:
         # JOINT-SPACE: (position, velocities, accelerations, and jerks)
         X_filt, Xdot, Xddot, Xdddot = filt_and_diff_config(X_interp, filter_window=filter_window,
-                                                        sav_gol_order=sav_gol_order, delta_t=new_dt,
-                                                        mode='nearest')
+                                                           sav_gol_order=sav_gol_order, delta_t=new_dt,
+                                                           mode='nearest')
     else:
         # JOINT-SPACE: (position, velocities, accelerations, and jerks) + CARTESIAN-SPACE: (position, velocities, accelerations)
         X_filt, Xdot, Xddot, Xdddot, \
@@ -263,24 +301,13 @@ def build_configuration_dataset(input_df, sub, instr, task, vel,
     return output_df
 
 
-def plot_coefficients_threshold(coeffs, state_names, threshold=1e-3, scale_viz=False):
+def plot_coefficients_threshold(coeffs, state_names, threshold=1e-3):
     # Select the coefficients above the threshold
     coeffs_sparse = np.where(np.abs(coeffs) >= threshold, coeffs, 0) # if abs(coeffs) >= threshold, 1, else 0
+    coeffs_sparse_viz = np.abs(coeffs_sparse)
 
-    positive_coeffs = np.where(coeffs_sparse > 0, coeffs_sparse, 0)
-    negative_coeffs = np.where(coeffs_sparse < 0, coeffs_sparse, 0)
-
-    # Scale if scale_viz is True
-    if scale_viz:
-        from sklearn.preprocessing import MinMaxScaler
-        scaler = MinMaxScaler()
-        coeffs_sparse_viz_positive = scaler.fit_transform(np.abs(positive_coeffs))
-        coeffs_sparse_viz_negative = -scaler.fit_transform(np.abs(negative_coeffs))
-
-        coeffs_sparse_viz = coeffs_sparse_viz_positive + coeffs_sparse_viz_negative
-
-    else:
-        coeffs_sparse_viz = coeffs_sparse
+    # Compress on a log scale
+    coeffs_sparse_viz = np.log10(coeffs_sparse_viz + 1e-10)
 
     # Create a custom colorscale with black for zero values, transitioning symmetrically using Turbo colorscale
     custom_colorscale = [
@@ -295,10 +322,11 @@ def plot_coefficients_threshold(coeffs, state_names, threshold=1e-3, scale_viz=F
     # Add the heatmap for non-zero values
     fig.add_trace(go.Heatmap(
         z=coeffs_sparse_viz,          # Use absolute values for the colorscale
-        text=coeffs_sparse,       # Use original signed values for display
+        text=coeffs_sparse,           # Use original signed values for display
         colorscale=custom_colorscale, # Choose a colorscale
         showscale=True,               # Show the color scale?
         hoverinfo='text',             # Display the original signed values on hover
+        colorbar=dict(title='Log10(Abs(Coefficient value))')  # Add label to the colorbar
     ))
 
     fig.update_layout(title='Sparsity Pattern of SINDy Coefficients',
@@ -343,7 +371,8 @@ def plot_sindy_coefficients_histogram(coefficients, best_coeff_percent, nbins=10
 
 
 # Plot the MSE vs. threshold and RS vs. threshold for training and validation data
-def plot_pareto(threshold_scan, mse_train_array, r2_train_array, mse_test_array, r2_test_array, test_example=False):
+def plot_pareto(threshold_scan, mse_train_array, r2_train_array, mse_test_array, r2_test_array,
+                coefficient_norms, test_example=False):
 
     # Define a formatter function
     def format_func(value, tick_number):
@@ -407,6 +436,21 @@ def plot_pareto(threshold_scan, mse_train_array, r2_train_array, mse_test_array,
     ax2.set_xlabel(r"$\lambda$")
     ax2.xaxis.set_major_formatter(FuncFormatter(format_func))
     ax2.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+    # COEFFICIENT NORMS
+    _, ax = plt.subplots(figsize=(6, 6))
+
+    ax.loglog(threshold_scan, coefficient_norms, "bo")
+    ax.loglog(threshold_scan, coefficient_norms, "b")
+
+    ax.set_title("Coefficient Norms vs. Threshold")
+    ax.set_ylabel("Coefficient Norm")
+    ax.set_xlabel(r"$\lambda$")
+    ax.xaxis.set_major_formatter(FuncFormatter(format_func))
+    ax.grid(True)
 
     plt.tight_layout()
     plt.show()

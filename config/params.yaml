@@ -1,0 +1,216 @@
+DATASET_FOLDER: "~/projects/estimation_ws/src/human_motion_dataset/data/6_preprocessed/"
+
+DATASET_NAMES:
+  PICK-&-PLACE: "dataset_PICK-&-PLACE.csv"
+  WALKING: "dataset_WALKING.csv"
+  PASSING-BY: "dataset_PASSING-BY.csv"
+
+COLUMN_NAMES_FILE: "column_names.json"
+
+VELOCITIES:
+  - "SLOW"
+  - "MEDIUM"
+  - "FAST"
+
+SELECTED_VELOCITIES:
+  - "SLOW"
+  - "MEDIUM"
+  - "FAST"
+
+TASKS:
+  PICK-&-PLACE:
+    - 0  # Place BOTH HANDS in home position 
+    - 1  # Reach object 1 with RIGHT HAND
+    - 2  # Place BOTH HANDS in home position
+    - 3  # Reach object 2 with LEFT HAND
+    - 4  # Place BOTH HANDS in home position
+    - 5  # Reach object 3 with ANY HAND
+    - 6  # Place BOTH HANDS in home position
+    - 7  # Reach robot end-effector with BOTH HANDS
+    - 8  # Place BOTH HANDS in home position
+  WALKING:
+    - 0  # Stand still in position A
+    - 1  # Walk to position B parallel to the cell
+    - 2  # Rotate 180 degrees and stand still
+    - 3  # Walk to position A parallel to the cell
+  PASSING-BY:
+    - 0  # Stand still in position C
+    - 1  # Walk to position D parallel to the cell
+    - 2  # Walk to position C parallel to the cell
+
+SELECTED_TASKS:
+  PICK-&-PLACE:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8    
+  # WALKING:
+  #   - 0
+  #   - 1
+  #   - 2
+  #   - 3
+
+TRAIN_SUBJECTS:
+  - sub_13
+  - sub_4
+  - sub_6
+  - sub_7
+  - sub_8
+  - sub_9
+  - sub_10
+  - sub_11
+
+TEST_SUBJECTS:
+  - sub_12
+  - sub_3
+
+ONLY_USE_UPPER_BODY: False
+
+PICKPLACE_BODY_JOINTS:
+  # - q_chest_pos_x
+  # - q_chest_pos_y
+  # - q_chest_pos_z
+  - q_chest_rot_x
+  - q_chest_rot_y
+  - q_chest_rot_z
+  - q_chest_rot_w
+  - q_shoulder_rot_x
+  # - q_hip_rot_z
+  # - q_hip_rot_x
+  - q_right_arm_rot_z
+  - q_right_arm_rot_x
+  - q_right_arm_rot_y
+  - q_right_elbow_rot_z
+  - q_left_arm_rot_z
+  - q_left_arm_rot_x
+  - q_left_arm_rot_y
+  - q_left_elbow_rot_z
+  # - q_right_leg_rot_z
+  # - q_right_leg_rot_x
+  # - q_right_leg_rot_y
+  # - q_right_knee_rot_z
+  # - q_left_leg_rot_z
+  # - q_left_leg_rot_x
+  # - q_left_leg_rot_y
+  # - q_left_knee_rot_z
+  - q_head_rot_z
+  - q_head_rot_x
+
+PICKPLACE_BODY_PARAMS:
+  - "shoulder_distance"
+  - "chest_hip_distance"
+  - "hip_distance"
+  - "upper_arm_length"
+  - "lower_arm_length"
+  # - "upper_leg_length"
+  # - "lower_leg_length"
+  - "head_distance"
+
+PICKPLACE_KPTS:
+  - 0  # head
+  - 5  # left_shoulder
+  - 6  # left_elbow
+  - 7  # left_wrist
+  # - 11 # left_hip
+  # - 12 # left_knee
+  # - 13 # left_ankle
+  - 2  # right_shoulder
+  - 3  # right_elbow
+  - 4  # right_wrist
+  # - 8  # right_hip
+  # - 9  # right_knee
+  # - 10 # right_ankle
+
+WALKING_BODY_JOINTS:
+  - q_chest_pos_x
+  - q_chest_pos_y
+  - q_chest_pos_z
+  # - q_chest_rot_x
+  # - q_chest_rot_y
+  # - q_chest_rot_z
+  # - q_chest_rot_w
+  # - q_shoulder_rot_x
+  - q_hip_rot_z
+  - q_hip_rot_x
+  - q_right_arm_rot_z
+  - q_right_arm_rot_x
+  - q_right_arm_rot_y
+  - q_right_elbow_rot_z
+  - q_left_arm_rot_z
+  - q_left_arm_rot_x
+  - q_left_arm_rot_y
+  - q_left_elbow_rot_z
+  - q_right_leg_rot_z
+  - q_right_leg_rot_x
+  - q_right_leg_rot_y
+  - q_right_knee_rot_z
+  - q_left_leg_rot_z
+  - q_left_leg_rot_x
+  - q_left_leg_rot_y
+  - q_left_knee_rot_z
+  # - q_head_rot_z
+  # - q_head_rot_x
+
+WALKING_BODY_PARAMS:
+  - "shoulder_distance"
+  - "chest_hip_distance"
+  - "hip_distance"
+  - "upper_arm_length"
+  - "lower_arm_length"
+  - "upper_leg_length"
+  - "lower_leg_length"
+  - "head_distance"
+
+WALKING_KPTS:
+  - 0  # head
+  - 5  # left_shoulder
+  - 6  # left_elbow
+  - 7  # left_wrist
+  - 11 # left_hip
+  - 12 # left_knee
+  - 13 # left_ankle
+  - 2  # right_shoulder
+  - 3  # right_elbow
+  - 4  # right_wrist
+  - 8  # right_hip
+  - 9  # right_knee
+  - 10 # right_ankle
+
+
+### SINDY PARAMETERS ###
+
+SAMPLING_TIME: 0.1
+NORMALIZE_COLUMNS: False     # If True, regularization seems worse #TODO: Check why
+
+PERFORM_LAMBDA_TUNING: True  # Define flag to perform lambda tuning
+LAMBDA_INF: 0.05              # Lower bound for regularization threshold
+LAMBDA_SUP: 50               # Upper bound for regularization threshold
+LAMBDA_NUM: 50               # Number of regularization thresholds to scan
+SELECTED_LAMBDA: 1.0         # Selected regularization threshold (if PERFORM_LAMBDA_TUNING is False)
+
+USE_CONF_FILT: True
+USE_CONF_VEL: True
+USE_PARAMS: True
+USE_KPTS_FILT: False # True
+USE_KPTS_VEL: False # True
+
+USE_POLY_LIB: True
+MAX_POLY_DEGREE: 1
+INCLUDE_BIAS: True           # include a bias term (constant feature)
+INCLUDE_INTERACTION: False   # include mixed terms (e.g. x1*x2)
+
+USE_FOURIER_LIB: True
+FOURIER_N_FREQ: 1
+
+USE_CUSTOM_LIB: False
+
+TENSOR_LIBRARIES: False      # Not working for CUSTOM library yet and TOO SLOW!
+
+ENABLE_ENSEMBLE_OPT: False  # Define flag to enable ensamble optimization
+ENSEMBLE_SUBSAMPLING: 0.6   # Define the subsampling factor for the ensemble optimization
+ENSEMBLE_BAGGING: True
